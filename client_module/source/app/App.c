@@ -78,6 +78,7 @@ void App_init(App* this, struct super_block *sb, MountConfig* mountConfig)
    this->appResult = APPCODE_NO_ERROR;
 
    this->connRetriesEnabled = true;
+   this->forceDisconnectActive = false;
    this->netBenchModeEnabled = false;
 
    this->cfg = NULL;

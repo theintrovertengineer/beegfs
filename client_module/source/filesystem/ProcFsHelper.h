@@ -18,6 +18,7 @@ extern int ProcFsHelper_readV2_clientInfo(struct seq_file* file, App* app);
 extern int ProcFsHelper_readV2_targetStates(struct seq_file* file, App* app,
    struct TargetStateStore* targetStates, struct NodeStoreEx* nodes, bool isMeta);
 extern int ProcFsHelper_readV2_connRetriesEnabled(struct seq_file* file, App* app);
+extern int ProcFsHelper_readV2_forceDisconnect(struct seq_file* file, App* app);
 extern int ProcFsHelper_readV2_netBenchModeEnabled(struct seq_file* file, App* app);
 extern int ProcFsHelper_readV2_logLevels(struct seq_file* file, App* app);
 
@@ -35,6 +36,7 @@ extern int ProcFsHelper_read_connRetriesEnabled(char* buf, char** start, off_t o
    int* eof, App* app);
 extern int ProcFsHelper_write_connRetriesEnabled(const char __user *buf,
    unsigned long count, App* app);
+extern int ProcFsHelper_write_forceDisconnect(const char __user *buf, unsigned long count, App* app);
 
 extern int ProcFsHelper_read_remapConnectionFailure(struct seq_file* file, App* app);
 extern int ProcFsHelper_write_remapConnectionFailure(const char __user *buf, unsigned long count, App* app);

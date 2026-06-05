@@ -119,6 +119,8 @@ static inline bool App_getInvalWatchFallback(App* this);
 static inline void App_setInvalWatchFallback(App* this);
 static inline bool App_getConnRetriesEnabled(App* this);
 static inline void App_setConnRetriesEnabled(App* this, bool connRetriesEnabled);
+static inline bool App_getForceDisconnectActive(App* this);
+static inline void App_setForceDisconnectActive(App* this, bool forceDisconnectActive);
 static inline bool App_getNetBenchModeEnabled(App* this);
 static inline void App_setNetBenchModeEnabled(App* this, bool netBenchModeEnabled);
 
@@ -193,6 +195,7 @@ struct App
    AtomicInt lockAckAtomicCounter; // used by remoting to generate unique lockAckIDs
    AtomicInt invalWatchFallback;   //flag to fall back to time-based meta cache mechanism in case of error
    volatile bool connRetriesEnabled; // changed at umount and via procfs
+   volatile bool forceDisconnectActive; // changed via procfs to fail client I/O fast
    bool netBenchModeEnabled; // changed via procfs to disable server-side disk read/write
 
    // Inode operations. Since the members of the structs depend on runtime config opts, we need
@@ -387,6 +390,16 @@ bool App_getConnRetriesEnabled(App* this)
 void App_setConnRetriesEnabled(App* this, bool connRetriesEnabled)
 {
    this->connRetriesEnabled = connRetriesEnabled;
+}
+
+bool App_getForceDisconnectActive(App* this)
+{
+   return this->forceDisconnectActive;
+}
+
+void App_setForceDisconnectActive(App* this, bool forceDisconnectActive)
+{
+   this->forceDisconnectActive = forceDisconnectActive;
 }
 
 bool App_getNetBenchModeEnabled(App* this)

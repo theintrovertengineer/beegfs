@@ -30,10 +30,13 @@ extern int __ProcFs_readV2_storageTargetStates(struct seq_file* file, void* p);
 extern int __ProcFs_readV2_cacheStats(struct seq_file* file, void* p);
 
 extern int __ProcFs_readV2_connRetriesEnabled(struct seq_file* file, void* p);
+extern int __ProcFs_readV2_forceDisconnect(struct seq_file* file, void* p);
 extern int __ProcFs_readV2_netBenchModeEnabled(struct seq_file* file, void* p);
 extern int __ProcFs_readV2_logLevels(struct seq_file* file, void* p);
 
 extern ssize_t __ProcFs_writeV2_connRetriesEnabled(struct file *file, const char __user *buf,
+   size_t count, loff_t *ppos);
+extern ssize_t __ProcFs_writeV2_forceDisconnect(struct file *file, const char __user *buf,
    size_t count, loff_t *ppos);
 extern ssize_t __ProcFs_writeV2_netBenchModeEnabled(struct file *file, const char __user *buf,
    size_t count, loff_t *ppos);

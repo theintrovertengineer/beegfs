@@ -251,6 +251,12 @@ FhgfsOpsErr __MessagingTk_requestResponseNodeRetry(App* app, RequestResponseNode
       int acquireSeqRes = 0;
       bool seqAckIsSelective = false;
 
+      if (unlikely(App_getForceDisconnectActive(app)))
+      {
+         commRes = FhgfsOpsErr_REMOTEIO;
+         goto exit;
+      }
+
       // select the right targetID
 
       NumNodeID nodeID; // don't modify caller's nodeID
@@ -359,6 +365,12 @@ FhgfsOpsErr __MessagingTk_requestResponseNodeRetry(App* app, RequestResponseNode
             // sleep on states other than "good" and "offline" with mirroring
             if(rrNode->mirrorBuddies)
             {
+               if (unlikely(App_getForceDisconnectActive(app)))
+               {
+                  commRes = FhgfsOpsErr_REMOTEIO;
+                  goto exit;
+               }
+
                LOG_DEBUG_FORMATTED(App_getLogger(app), Log_DEBUG, logContext,
                   "Waiting before communication because of node state. "
                   "nodeID: %u; node state: %s / %s",
@@ -435,6 +447,12 @@ FhgfsOpsErr __MessagingTk_requestResponseNodeRetry(App* app, RequestResponseNode
       else
       if( (commRes == FhgfsOpsErr_AGAIN) && App_getConnRetriesEnabled(app) )
       { // retry infinitely
+         if (unlikely(App_getForceDisconnectActive(app)))
+         {
+            commRes = FhgfsOpsErr_REMOTEIO;
+            goto release_node_and_break;
+         }
+
          currentRetryNum = 0;
 
          Thread_sleep(MSGTK_INFINITE_RETRY_WAIT_MS);
@@ -451,6 +469,12 @@ FhgfsOpsErr __MessagingTk_requestResponseNodeRetry(App* app, RequestResponseNode
       if(App_getConnRetriesEnabled(app) &&
          (!rrArgs->numRetries || (currentRetryNum < rrArgs->numRetries) ) )
       { // we have a retry left
+         if (unlikely(App_getForceDisconnectActive(app)))
+         {
+            commRes = FhgfsOpsErr_REMOTEIO;
+            goto release_node_and_break;
+         }
+
          MessagingTk_waitBeforeRetry(currentRetryNum);
          currentRetryNum++;
 

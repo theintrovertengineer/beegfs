@@ -186,3 +186,27 @@ unsigned NodesTk_dropAllConnsByStore(NodeStoreEx* nodes)
 
    return numDroppedConns;
 }
+
+/**
+ * Walk over all nodes in the given store and force all pooled connections to fail as fast as
+ * possible. Available sockets are disconnected immediately; in-flight sockets are marked
+ * close-on-release so they are torn down as soon as the caller unwinds.
+ *
+ * @return number of immediately invalidated available connections
+ */
+unsigned NodesTk_forceDisconnectAllConnsByStore(NodeStoreEx* nodes)
+{
+   unsigned numDroppedConns = 0;
+
+   Node* node = NodeStoreEx_referenceFirstNode(nodes);
+   while(node)
+   {
+      NodeConnPool* connPool = Node_getConnPool(node);
+
+      numDroppedConns += __NodeConnPool_invalidateAvailableStreams(connPool, false, true);
+
+      node = NodeStoreEx_referenceNextNodeAndReleaseOld(nodes, node);
+   }
+
+   return numDroppedConns;
+}

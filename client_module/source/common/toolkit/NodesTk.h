@@ -13,6 +13,7 @@ extern bool NodesTk_downloadTargetMappings(App* app, Node* sourceNode, struct li
 extern bool NodesTk_downloadStatesAndBuddyGroups(App* app, Node* sourceNode,
    NodeType nodeType, struct list_head* groups, struct list_head* states);
 extern unsigned NodesTk_dropAllConnsByStore(NodeStoreEx* nodes);
+extern unsigned NodesTk_forceDisconnectAllConnsByStore(NodeStoreEx* nodes);
 
 
 #endif /* NODESTK_H_ */

@@ -17,6 +17,7 @@
 #define BEEGFS_PROC_ENTRY_STORAGENODES        "storage_nodes"
 #define BEEGFS_PROC_ENTRY_CLIENTINFO          "client_info"
 #define BEEGFS_PROC_ENTRY_RETRIESENABLED      "conn_retries_enabled"
+#define BEEGFS_PROC_ENTRY_FORCEDISCONNECT     "force_disconnect"
 #define BEEGFS_PROC_ENTRY_NETBENCHENABLED     "netbench_mode"
 #define BEEGFS_PROC_ENTRY_DROPCONNS           "drop_conns"
 #define BEEGFS_PROC_ENTRY_LOGLEVELS           "log_levels"
@@ -118,6 +119,12 @@ static const struct fhgfs_proc_file_rw fhgfs_proc_files_rw[] =
       {
          BEEGFS_PROC_FOPS_INITIALIZER,
          .PROC_OPS_WRITE_MEMBER   = &__ProcFs_writeV2_connRetriesEnabled,
+      },
+   },
+   { BEEGFS_PROC_ENTRY_FORCEDISCONNECT, &__ProcFs_readV2_forceDisconnect,
+      {
+         BEEGFS_PROC_FOPS_INITIALIZER,
+         .PROC_OPS_WRITE_MEMBER   = &__ProcFs_writeV2_forceDisconnect,
       },
    },
    { BEEGFS_PROC_ENTRY_NETBENCHENABLED, &__ProcFs_readV2_netBenchModeEnabled,
@@ -441,6 +448,13 @@ int __ProcFs_readV2_connRetriesEnabled(struct seq_file* file, void* p)
    return ProcFsHelper_readV2_connRetriesEnabled(file, app);
 }
 
+int __ProcFs_readV2_forceDisconnect(struct seq_file* file, void* p)
+{
+   App* app = file->private;
+
+   return ProcFsHelper_readV2_forceDisconnect(file, app);
+}
+
 
 /**
  * @param data specified at entry creation
@@ -456,6 +470,18 @@ ssize_t __ProcFs_writeV2_connRetriesEnabled(struct file *file, const char __user
       return -EFAULT;
 
    return ProcFsHelper_write_connRetriesEnabled(buf, count, app);
+}
+
+ssize_t __ProcFs_writeV2_forceDisconnect(struct file *file, const char __user *buf,
+   size_t count, loff_t *ppos)
+{
+   struct inode* procInode = file_inode(file);
+   App* app = __ProcFs_getProcParentDirEntryDataField(procInode);
+
+   if(unlikely(!os_access_ok(VERIFY_READ, buf, count) ) )
+      return -EFAULT;
+
+   return ProcFsHelper_write_forceDisconnect(buf, count, app);
 }
 
 int __ProcFs_read_remapConnectionFailure(struct seq_file* file, void* p)

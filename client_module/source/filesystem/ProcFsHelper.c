@@ -442,6 +442,75 @@ out_fault:
    return retVal;
 }
 
+int ProcFsHelper_readV2_forceDisconnect(struct seq_file* file, App* app)
+{
+   bool forceDisconnectActive = App_getForceDisconnectActive(app);
+
+   seq_printf(file,
+      "%d\n"
+      "# Enabled force_disconnect (=1) means BeeGFS client operations fail fast.\n"
+      "# New requests stop retrying, available connections are dropped immediately,\n"
+      "# and in-flight pooled sockets are closed as soon as they are released.\n",
+      forceDisconnectActive ? 1 : 0);
+
+   return 0;
+}
+
+int ProcFsHelper_write_forceDisconnect(const char __user *buf, unsigned long count, App* app)
+{
+   const char* logContext = "procfs (force disconnect)";
+
+   int retVal;
+   long copyVal;
+   Logger* log = App_getLogger(app);
+
+   char* kernelBuf;
+   char* trimCopy;
+   bool forceDisconnectActive;
+   unsigned numDroppedConns = 0;
+
+   kernelBuf = os_kmalloc(count+1);
+   kernelBuf[count] = 0;
+
+   copyVal = __copy_from_user(kernelBuf, buf, count);
+   if (copyVal != 0)
+   {
+      retVal = -EFAULT;
+      goto out_fault;
+   }
+
+   trimCopy = StringTk_trimCopy(kernelBuf);
+   forceDisconnectActive = StringTk_strToBool(trimCopy);
+
+   App_setForceDisconnectActive(app, forceDisconnectActive);
+   App_setConnRetriesEnabled(app, !forceDisconnectActive);
+
+   if(forceDisconnectActive)
+   {
+      numDroppedConns += NodesTk_forceDisconnectAllConnsByStore(App_getMgmtNodes(app));
+      numDroppedConns += NodesTk_forceDisconnectAllConnsByStore(App_getMetaNodes(app));
+      numDroppedConns += NodesTk_forceDisconnectAllConnsByStore(App_getStorageNodes(app));
+
+      Logger_logFormatted(log, Log_CRITICAL, logContext,
+         "Force disconnect enabled. Dropped %u available pooled connections and disabled retries.",
+         numDroppedConns);
+   }
+   else
+   {
+      Logger_log(log, Log_CRITICAL, logContext,
+         "Force disconnect disabled. New BeeGFS requests may retry again.");
+   }
+
+   retVal = count;
+
+   kfree(trimCopy);
+
+out_fault:
+   kfree(kernelBuf);
+
+   return retVal;
+}
+
 int ProcFsHelper_read_remapConnectionFailure(struct seq_file* file, App* app)
 {
    Config* cfg = App_getConfig(app);
@@ -745,4 +814,3 @@ void __ProcFsHelper_printNodeConnsV2(struct seq_file* file, struct Node* node)
    // cleanup
    SAFE_KFREE(peerNameBuf);
 }
-
